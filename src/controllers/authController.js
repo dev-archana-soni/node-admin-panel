@@ -135,7 +135,8 @@ async function getProfile(req, res) {
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         phone: user.phone || '',
-        address: user.address || ''
+        address: user.address || '',
+        image: user.image || ''
       }
     });
   } catch (error) {
@@ -146,16 +147,22 @@ async function getProfile(req, res) {
 
 async function updateProfile(req, res) {
   const { firstName, lastName, phone, address } = req.body || {};
+  const updateData = {
+    firstName: firstName?.trim() || '',
+    lastName: lastName?.trim() || '',
+    phone: phone?.trim() || '',
+    address: address?.trim() || ''
+  };
+
+  // Add image if file was uploaded
+  if (req.file) {
+    updateData.image = `/uploads/avatars/${req.file.filename}`;
+  }
 
   try {
     const updatedUser = await User.findByIdAndUpdate(
       req.user.userId,
-      {
-        firstName: firstName?.trim() || '',
-        lastName: lastName?.trim() || '',
-        phone: phone?.trim() || '',
-        address: address?.trim() || ''
-      },
+      updateData,
       { new: true }
     ).populate('role', 'name').lean();
 
@@ -173,7 +180,8 @@ async function updateProfile(req, res) {
         firstName: updatedUser.firstName || '',
         lastName: updatedUser.lastName || '',
         phone: updatedUser.phone || '',
-        address: updatedUser.address || ''
+        address: updatedUser.address || '',
+        image: updatedUser.image || ''
       }
     });
   } catch (error) {

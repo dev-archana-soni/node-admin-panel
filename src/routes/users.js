@@ -8,6 +8,7 @@ const {
   getAvailableRoles 
 } = require('../controllers/usersController');
 const authenticate = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
 const router = Router();
 
@@ -21,10 +22,10 @@ router.get('/', authenticate, getAllUsers);
 router.get('/:id', authenticate, getUserById);
 
 // Create new user
-router.post('/', authenticate, createUser);
+router.post('/', authenticate, upload.single('image'), createUser);
 
 // Update user
-router.put('/:id', authenticate, updateUser);
+router.put('/:id', authenticate, upload.single('image'), updateUser);
 
 // Delete user
 router.delete('/:id', authenticate, deleteUser);

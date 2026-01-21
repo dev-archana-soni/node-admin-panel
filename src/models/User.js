@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema(
     firstName: { type: String, trim: true },
     lastName: { type: String, trim: true },
     phone: { type: String, trim: true },
-    address: { type: String, trim: true }
+    address: { type: String, trim: true },
+    image: { type: String, trim: true } // Profile image path
   },
   { timestamps: true }
 );

@@ -20,6 +20,7 @@ async function getAllUsers(req, res) {
         lastName: user.lastName || '',
         phone: user.phone || '',
         address: user.address || '',
+        image: user.image || '',
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }))
@@ -54,6 +55,7 @@ async function getUserById(req, res) {
         lastName: user.lastName || '',
         phone: user.phone || '',
         address: user.address || '',
+        image: user.image || '',
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }
@@ -66,7 +68,7 @@ async function getUserById(req, res) {
 
 // Create new user
 async function createUser(req, res) {
-  const { email, password, name, role } = req.body || {};
+  const { email, password, name, role, firstName, lastName, phone, address } = req.body || {};
 
   // Validation
   if (!email || !password || !name || !role) {
@@ -91,12 +93,24 @@ async function createUser(req, res) {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const newUser = await User.create({
+    
+    const userData = {
       email: email.trim().toLowerCase(),
       name: name.trim(),
       role,
-      passwordHash
-    });
+      passwordHash,
+      firstName: firstName?.trim() || '',
+      lastName: lastName?.trim() || '',
+      phone: phone?.trim() || '',
+      address: address?.trim() || ''
+    };
+    
+    // Add image if uploaded
+    if (req.file) {
+      userData.image = `/uploads/avatars/${req.file.filename}`;
+    }
+    
+    const newUser = await User.create(userData);
 
     await newUser.populate('role', 'name description');
 
@@ -111,6 +125,7 @@ async function createUser(req, res) {
         lastName: newUser.lastName || '',
         phone: newUser.phone || '',
         address: newUser.address || '',
+        image: newUser.image || '',
         createdAt: newUser.createdAt,
         updatedAt: newUser.updatedAt
       }
@@ -157,6 +172,7 @@ async function updateUser(req, res) {
     if (lastName !== undefined) user.lastName = lastName?.trim() || '';
     if (phone !== undefined) user.phone = phone?.trim() || '';
     if (address !== undefined) user.address = address?.trim() || '';
+    if (req.file) user.image = `/uploads/avatars/${req.file.filename}`;
 
     await user.save();
     await user.populate('role', 'name description');
@@ -172,6 +188,7 @@ async function updateUser(req, res) {
         lastName: user.lastName || '',
         phone: user.phone || '',
         address: user.address || '',
+        image: user.image || '',
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }

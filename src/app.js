@@ -1,6 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
+const usersRoutes = require('./routes/users');
+const rolesRoutes = require('./routes/roles');
+const permissionsRoutes = require('./routes/permissions');
+const modulesRoutes = require('./routes/modules');
 
 const app = express();
 
@@ -15,6 +19,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/roles', rolesRoutes);
+app.use('/api/permissions', permissionsRoutes);
+app.use('/api/modules', modulesRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

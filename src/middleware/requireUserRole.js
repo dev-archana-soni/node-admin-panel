@@ -14,10 +14,11 @@ async function requireUserRole(req, res, next) {
       return res.status(401).json({ message: 'User not found' });
     }
 
-    // Check if user has 'user' role (not admin)
-    const hasUserRole = user.role && user.role.name && user.role.name.toLowerCase() === 'user';
+    // Check if user has 'user' or 'admin' role
+    const hasValidRole = user.role && user.role.name && 
+      (user.role.name.toLowerCase() === 'user' || user.role.name.toLowerCase() === 'admin');
     
-    if (!hasUserRole) {
+    if (!hasValidRole) {
       return res.status(403).json({ message: 'Access denied. Only users with user role can access this resource.' });
     }
 

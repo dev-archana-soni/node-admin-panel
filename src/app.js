@@ -9,6 +9,7 @@ const permissionsRoutes = require('./routes/permissions');
 const modulesRoutes = require('./routes/modules');
 const categoriesRoutes = require('./routes/categories');
 const incomeRoutes = require('./routes/income');
+const expenseRoutes = require('./routes/expense');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/permissions', permissionsRoutes);
 app.use('/api/modules', modulesRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/income', incomeRoutes);
+app.use('/api/expense', expenseRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

@@ -813,6 +813,165 @@ Authorization: Bearer <JWT_TOKEN>
 
 ---
 
+## 💸 Expense Endpoints
+
+### 1. Get All Expenses
+```
+GET /expense
+```
+**URL:** `http://localhost:5000/api/expense`
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Response:**
+```json
+{
+  "expenses": [
+    {
+      "id": "67932710....",
+      "title": "Grocery Shopping",
+      "amount": 5000,
+      "description": "Monthly groceries",
+      "category": {
+        "id": "679...",
+        "name": "Food",
+        "type": "expense"
+      },
+      "date": "2026-01-23T00:00:00.000Z",
+      "createdBy": {
+        "id": "606...",
+        "name": "John Doe",
+        "email": "john@example.com"
+      },
+      "createdAt": "2026-01-23T08:33:52.614Z",
+      "updatedAt": "2026-01-23T08:33:52.614Z"
+    }
+  ]
+}
+```
+
+---
+
+### 2. Get Expense by ID
+```
+GET /expense/:id
+```
+**URL:** `http://localhost:5000/api/expense/:id`
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+### 3. Create Expense
+```
+POST /expense
+```
+**URL:** `http://localhost:5000/api/expense`
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "title": "Electricity Bill",
+  "amount": 2500,
+  "description": "Monthly electricity payment",
+  "category": "67932710bcf2b29e6eaabe1f",
+  "date": "2026-01-23"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Expense created successfully",
+  "expense": {
+    "id": "679...",
+    "title": "Electricity Bill",
+    "amount": 2500,
+    "description": "Monthly electricity payment",
+    "category": {
+      "id": "679...",
+      "name": "Utilities",
+      "type": "expense"
+    },
+    "date": "2026-01-23T00:00:00.000Z",
+    "createdBy": {...},
+    "createdAt": "2026-01-23T08:33:52.614Z",
+    "updatedAt": "2026-01-23T08:33:52.614Z"
+  }
+}
+```
+
+---
+
+### 4. Update Expense
+```
+PUT /expense/:id
+```
+**URL:** `http://localhost:5000/api/expense/:id`
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "title": "Updated Title",
+  "amount": 3000,
+  "description": "Updated description",
+  "category": "67932710bcf2b29e6eaabe1f",
+  "date": "2026-01-24"
+}
+```
+
+---
+
+### 5. Delete Expense
+```
+DELETE /expense/:id
+```
+**URL:** `http://localhost:5000/api/expense/:id`
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Response:**
+```json
+{
+  "message": "Expense deleted successfully"
+}
+```
+
+---
+
+## 📊 Expense API Summary Table
+
+| Action | Method | URL |
+|--------|--------|-----|
+| Get All Expenses | GET | `http://localhost:5000/api/expense` |
+| Get Expense | GET | `http://localhost:5000/api/expense/:id` |
+| Create Expense | POST | `http://localhost:5000/api/expense` |
+| Update Expense | PUT | `http://localhost:5000/api/expense/:id` |
+| Delete Expense | DELETE | `http://localhost:5000/api/expense/:id` |
+
+---
+
 ## 🔗 Copy-Paste URLs
 
 ### Authentication
@@ -855,6 +1014,10 @@ Authorization: Bearer <JWT_TOKEN>
 - `http://localhost:5000/api/income`
 - `http://localhost:5000/api/income/:id`
 
+### Expense
+- `http://localhost:5000/api/expense`
+- `http://localhost:5000/api/expense/:id`
+
 ---
 
 ## 📝 Notes
@@ -865,3 +1028,6 @@ Authorization: Bearer <JWT_TOKEN>
 - JWT token expires after 24 hours
 - Base URL can be changed in `.env` file (default: `localhost:5000`)
 - Income categories must have `type: "income"` to be used in income records
+- Expense categories must have `type: "expense"` to be used in expense records
+- Income and Expense modules are only accessible by users with "user" role
+- Categories and Income/Expense records are filtered by `createdBy` (user can only see their own records)

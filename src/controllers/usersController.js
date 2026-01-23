@@ -107,7 +107,7 @@ async function createUser(req, res) {
     
     // Add image if uploaded
     if (req.file) {
-      userData.image = `/uploads/avatars/${req.file.filename}`;
+      userData.image = `http://localhost:5000/uploads/avatars/${req.file.filename}`;
     }
     
     const newUser = await User.create(userData);
@@ -172,7 +172,7 @@ async function updateUser(req, res) {
     if (lastName !== undefined) user.lastName = lastName?.trim() || '';
     if (phone !== undefined) user.phone = phone?.trim() || '';
     if (address !== undefined) user.address = address?.trim() || '';
-    if (req.file) user.image = `/uploads/avatars/${req.file.filename}`;
+    if (req.file) user.image = `http://localhost:5000/uploads/avatars/${req.file.filename}`;
 
     await user.save();
     await user.populate('role', 'name description');

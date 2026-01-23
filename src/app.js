@@ -3,9 +3,12 @@ const cors = require('cors');
 const path = require('path');
 const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');
+const userGroupsRoutes = require('./routes/userGroups');
 const rolesRoutes = require('./routes/roles');
 const permissionsRoutes = require('./routes/permissions');
 const modulesRoutes = require('./routes/modules');
+const categoriesRoutes = require('./routes/categories');
+const incomeRoutes = require('./routes/income');
 
 const app = express();
 
@@ -25,9 +28,12 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/user-groups', userGroupsRoutes);
 app.use('/api/roles', rolesRoutes);
 app.use('/api/permissions', permissionsRoutes);
 app.use('/api/modules', modulesRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/income', incomeRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

@@ -2,16 +2,26 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, '../../uploads/avatars');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Base uploads directory
+const baseUploadsDir = path.join(__dirname, '../../uploads');
+if (!fs.existsSync(baseUploadsDir)) {
+  fs.mkdirSync(baseUploadsDir, { recursive: true });
 }
 
 // Configure storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadsDir);
+    // Store group logos separately from avatars
+    const subDir = file.fieldname === 'logo' ? 'groups' : 'avatars';
+    const targetDir = path.join(baseUploadsDir, subDir);
+
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+
+    // Keep subDir on the request so controllers can build URL paths
+    req.uploadSubdir = subDir;
+    cb(null, targetDir);
   },
   filename: (req, file, cb) => {
     // Create unique filename

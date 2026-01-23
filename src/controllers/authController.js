@@ -156,7 +156,7 @@ async function updateProfile(req, res) {
 
   // Add image if file was uploaded
   if (req.file) {
-    updateData.image = `/uploads/avatars/${req.file.filename}`;
+    updateData.image = `http://localhost:5000/uploads/avatars/${req.file.filename}`;
   }
 
   try {

@@ -189,7 +189,105 @@ DELETE /users/:id
 **Header:** `Authorization: Bearer <JWT_TOKEN>`
 
 ---
+## 👥 User Groups Endpoints
 
+### 1. Get All User Groups
+```
+GET /user-groups
+```
+**URL:** `http://localhost:5000/api/user-groups`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+---
+
+### 2. Get User Group by ID
+```
+GET /user-groups/:id
+```
+**URL:** `http://localhost:5000/api/user-groups/USER_GROUP_ID_HERE`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+---
+
+### 3. Create User Group
+```
+POST /user-groups
+```
+**URL:** `http://localhost:5000/api/user-groups`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+**Form Data:**
+- `name` (required): Group name
+- `description` (optional): Group description
+- `members` (optional): JSON array of user IDs `["USER_ID_1", "USER_ID_2"]`
+- `logo` (optional): Image file for group logo
+
+**Example:**
+```json
+{
+  "name": "Marketing Team",
+  "description": "Marketing department group",
+  "members": ["USER_ID_1", "USER_ID_2"]
+}
+```
+
+---
+
+### 4. Update User Group
+```
+PUT /user-groups/:id
+```
+**URL:** `http://localhost:5000/api/user-groups/USER_GROUP_ID_HERE`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+**Form Data:**
+- `name` (optional): Updated group name
+- `description` (optional): Updated group description
+- `members` (optional): JSON array of user IDs
+- `logo` (optional): New image file for group logo
+
+---
+
+### 5. Delete User Group
+```
+DELETE /user-groups/:id
+```
+**URL:** `http://localhost:5000/api/user-groups/USER_GROUP_ID_HERE`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+---
+
+### 6. Add Member to Group
+```
+POST /user-groups/:id/members
+```
+**URL:** `http://localhost:5000/api/user-groups/USER_GROUP_ID_HERE/members`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+**Body:**
+```json
+{
+  "userId": "USER_ID_HERE"
+}
+```
+
+---
+
+### 7. Remove Member from Group
+```
+DELETE /user-groups/:id/members/:userId
+```
+**URL:** `http://localhost:5000/api/user-groups/USER_GROUP_ID_HERE/members/USER_ID_HERE`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+---
 ## 🎭 Roles Endpoints
 
 ### 1. Get All Roles
@@ -432,7 +530,83 @@ DELETE /modules/:id
 
 ---
 
-## 📋 Quick Reference Summary
+## � Categories Endpoints
+
+### 1. Get All Categories
+```
+GET /categories
+```
+**URL:** `http://localhost:5000/api/categories`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+---
+
+### 2. Get Category by ID
+```
+GET /categories/:id
+```
+**URL:** `http://localhost:5000/api/categories/CATEGORY_ID_HERE`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+---
+
+### 3. Create Category
+```
+POST /categories
+```
+**URL:** `http://localhost:5000/api/categories`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+**Body:**
+```json
+{
+  "name": "Groceries",
+  "description": "Food and household items",
+  "type": "expense",
+  "icon": "mdi-food",
+  "color": "#FF5252",
+  "isActive": true
+}
+```
+
+---
+
+### 4. Update Category
+```
+PUT /categories/:id
+```
+**URL:** `http://localhost:5000/api/categories/CATEGORY_ID_HERE`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+**Body:**
+```json
+{
+  "name": "Groceries & Food",
+  "description": "Updated: Food and household items",
+  "type": "expense",
+  "icon": "mdi-food",
+  "color": "#FF5252",
+  "isActive": true
+}
+```
+
+---
+
+### 5. Delete Category
+```
+DELETE /categories/:id
+```
+**URL:** `http://localhost:5000/api/categories/CATEGORY_ID_HERE`
+
+**Header:** `Authorization: Bearer <JWT_TOKEN>`
+
+---
+
+## �📋 Quick Reference Summary
 
 | Endpoint | Method | URL |
 |----------|--------|-----|
@@ -448,6 +622,13 @@ DELETE /modules/:id
 | Update User | PUT | `http://localhost:5000/api/users/:id` |
 | Delete User | DELETE | `http://localhost:5000/api/users/:id` |
 | Get Available Roles | GET | `http://localhost:5000/api/users/available-roles` |
+| Get All User Groups | GET | `http://localhost:5000/api/user-groups` |
+| Get User Group | GET | `http://localhost:5000/api/user-groups/:id` |
+| Create User Group | POST | `http://localhost:5000/api/user-groups` |
+| Update User Group | PUT | `http://localhost:5000/api/user-groups/:id` |
+| Delete User Group | DELETE | `http://localhost:5000/api/user-groups/:id` |
+| Add Group Member | POST | `http://localhost:5000/api/user-groups/:id/members` |
+| Remove Group Member | DELETE | `http://localhost:5000/api/user-groups/:id/members/:userId` |
 | Get All Roles | GET | `http://localhost:5000/api/roles` |
 | Get Role | GET | `http://localhost:5000/api/roles/:id` |
 | Create Role | POST | `http://localhost:5000/api/roles` |
@@ -465,6 +646,170 @@ DELETE /modules/:id
 | Create Module | POST | `http://localhost:5000/api/modules` |
 | Update Module | PUT | `http://localhost:5000/api/modules/:id` |
 | Delete Module | DELETE | `http://localhost:5000/api/modules/:id` |
+| Get All Categories | GET | `http://localhost:5000/api/categories` |
+| Get Category | GET | `http://localhost:5000/api/categories/:id` |
+| Create Category | POST | `http://localhost:5000/api/categories` |
+| Update Category | PUT | `http://localhost:5000/api/categories/:id` |
+| Delete Category | DELETE | `http://localhost:5000/api/categories/:id` |
+
+---
+
+## � Income Endpoints
+
+### 1. Get All Incomes
+```
+GET /income
+```
+**URL:** `http://localhost:5000/api/income`
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Response:**
+```json
+{
+  "incomes": [
+    {
+      "id": "67932710....",
+      "title": "Salary",
+      "amount": 50000,
+      "description": "Monthly salary",
+      "category": {
+        "id": "679...",
+        "name": "Salary",
+        "type": "income"
+      },
+      "date": "2026-01-23T00:00:00.000Z",
+      "createdBy": {
+        "id": "606...",
+        "name": "John Doe",
+        "email": "john@example.com"
+      },
+      "createdAt": "2026-01-23T08:33:52.614Z",
+      "updatedAt": "2026-01-23T08:33:52.614Z"
+    }
+  ]
+}
+```
+
+---
+
+### 2. Get Income by ID
+```
+GET /income/:id
+```
+**URL:** `http://localhost:5000/api/income/:id`
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+### 3. Create Income
+```
+POST /income
+```
+**URL:** `http://localhost:5000/api/income`
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "title": "Freelance Project",
+  "amount": 15000,
+  "description": "Website development project",
+  "category": "67932710bcf2b29e6eaabe1f",
+  "date": "2026-01-23"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Income created successfully",
+  "income": {
+    "id": "679...",
+    "title": "Freelance Project",
+    "amount": 15000,
+    "description": "Website development project",
+    "category": {
+      "id": "679...",
+      "name": "Freelance",
+      "type": "income"
+    },
+    "date": "2026-01-23T00:00:00.000Z",
+    "createdBy": {...},
+    "createdAt": "2026-01-23T08:33:52.614Z",
+    "updatedAt": "2026-01-23T08:33:52.614Z"
+  }
+}
+```
+
+---
+
+### 4. Update Income
+```
+PUT /income/:id
+```
+**URL:** `http://localhost:5000/api/income/:id`
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "title": "Updated Title",
+  "amount": 20000,
+  "description": "Updated description",
+  "category": "67932710bcf2b29e6eaabe1f",
+  "date": "2026-01-24"
+}
+```
+
+---
+
+### 5. Delete Income
+```
+DELETE /income/:id
+```
+**URL:** `http://localhost:5000/api/income/:id`
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Response:**
+```json
+{
+  "message": "Income deleted successfully"
+}
+```
+
+---
+
+## 📊 Income API Summary Table
+
+| Action | Method | URL |
+|--------|--------|-----|
+| Get All Incomes | GET | `http://localhost:5000/api/income` |
+| Get Income | GET | `http://localhost:5000/api/income/:id` |
+| Create Income | POST | `http://localhost:5000/api/income` |
+| Update Income | PUT | `http://localhost:5000/api/income/:id` |
+| Delete Income | DELETE | `http://localhost:5000/api/income/:id` |
 
 ---
 
@@ -482,6 +827,12 @@ DELETE /modules/:id
 - `http://localhost:5000/api/users/:id`
 - `http://localhost:5000/api/users/available-roles`
 
+### User Groups
+- `http://localhost:5000/api/user-groups`
+- `http://localhost:5000/api/user-groups/:id`
+- `http://localhost:5000/api/user-groups/:id/members`
+- `http://localhost:5000/api/user-groups/:id/members/:userId`
+
 ### Roles
 - `http://localhost:5000/api/roles`
 - `http://localhost:5000/api/roles/:id`
@@ -496,6 +847,14 @@ DELETE /modules/:id
 - `http://localhost:5000/api/modules/active/list`
 - `http://localhost:5000/api/modules/:id`
 
+### Categories
+- `http://localhost:5000/api/categories`
+- `http://localhost:5000/api/categories/:id`
+
+### Income
+- `http://localhost:5000/api/income`
+- `http://localhost:5000/api/income/:id`
+
 ---
 
 ## 📝 Notes
@@ -505,3 +864,4 @@ DELETE /modules/:id
 - All POST/PUT endpoints require `Content-Type: application/json` header
 - JWT token expires after 24 hours
 - Base URL can be changed in `.env` file (default: `localhost:5000`)
+- Income categories must have `type: "income"` to be used in income records

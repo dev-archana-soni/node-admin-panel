@@ -8,6 +8,8 @@ async function getAllExpenses(req, res) {
     const expenses = await Expense.find({ createdBy: userId })
       .populate('category', 'id name type')
       .populate('createdBy', 'id name email')
+      .populate('userGroup', 'id name')
+      .populate('participants', 'id name email')
       .sort({ date: -1 })
       .lean();
     
@@ -16,12 +18,24 @@ async function getAllExpenses(req, res) {
         id: expense._id.toString(),
         title: expense.title,
         amount: expense.amount,
+        amountPerPerson: expense.amountPerPerson,
+        totalAmount: expense.totalAmount || expense.amount,
+        type: expense.type || 'own',
         description: expense.description || '',
         category: expense.category ? {
           id: expense.category._id?.toString(),
           name: expense.category.name,
           type: expense.category.type
         } : null,
+        userGroup: expense.userGroup ? {
+          id: expense.userGroup._id?.toString(),
+          name: expense.userGroup.name
+        } : null,
+        participants: (expense.participants || []).map(p => ({
+          id: p._id?.toString() || p,
+          name: p.name || '',
+          email: p.email || ''
+        })),
         date: expense.date,
         createdBy: expense.createdBy ? {
           id: expense.createdBy._id?.toString(),
@@ -47,6 +61,8 @@ async function getExpenseById(req, res) {
     const expense = await Expense.findOne({ _id: id, createdBy: userId })
       .populate('category', 'id name type')
       .populate('createdBy', 'id name email')
+      .populate('userGroup', 'id name')
+      .populate('participants', 'id name email')
       .lean();
     
     if (!expense) {
@@ -58,12 +74,24 @@ async function getExpenseById(req, res) {
         id: expense._id.toString(),
         title: expense.title,
         amount: expense.amount,
+        amountPerPerson: expense.amountPerPerson,
+        totalAmount: expense.totalAmount || expense.amount,
+        type: expense.type || 'own',
         description: expense.description || '',
         category: expense.category ? {
           id: expense.category._id?.toString(),
           name: expense.category.name,
           type: expense.category.type
         } : null,
+        userGroup: expense.userGroup ? {
+          id: expense.userGroup._id?.toString(),
+          name: expense.userGroup.name
+        } : null,
+        participants: (expense.participants || []).map(p => ({
+          id: p._id?.toString() || p,
+          name: p.name || '',
+          email: p.email || ''
+        })),
         date: expense.date,
         createdBy: expense.createdBy ? {
           id: expense.createdBy._id?.toString(),
@@ -82,7 +110,7 @@ async function getExpenseById(req, res) {
 
 // Create new expense
 async function createExpense(req, res) {
-  const { title, amount, description, category, date } = req.body;
+  const { title, amount, description, category, date, type, userGroup, participants } = req.body;
   const userId = req.user?.userId || req.user?.id;
 
   // Validation
@@ -106,17 +134,74 @@ async function createExpense(req, res) {
       return res.status(400).json({ message: 'Selected category must be of type expense' });
     }
 
+    const totalAmount = parseFloat(amount);
+    let expenseType = type || 'own';
+    let participantsList = [];
+    let amountPerPerson = totalAmount;
+    let groupId = null;
+
+    // Handle group expense
+    if (expenseType === 'group') {
+      if (!userGroup) {
+        return res.status(400).json({ message: 'User group is required for group expense' });
+      }
+      if (!participants || participants.length === 0) {
+        return res.status(400).json({ message: 'At least one participant is required' });
+      }
+
+      // Verify user group exists
+      const UserGroup = require('../models/UserGroup');
+      const groupDoc = await UserGroup.findOne({ _id: userGroup, createdBy: userId });
+      if (!groupDoc) {
+        return res.status(404).json({ message: 'User group not found' });
+      }
+
+      // Include the creator in the split count
+      participantsList = [...new Set((participants || []).map(String))];
+      groupId = userGroup;
+      const splitCount = (participantsList.length || 0) + 1; // include creator
+      amountPerPerson = totalAmount / splitCount;
+
+      // Create individual expenses for each participant (excluding creator)
+      const User = require('../models/User');
+      for (const participantId of participantsList) {
+        const participantUser = await User.findById(participantId);
+        if (!participantUser) continue;
+
+        const individualExpense = new Expense({
+          title: `${title} (Split from ${groupDoc.name})`,
+          amount: amountPerPerson,
+          totalAmount: amountPerPerson,
+          description: description?.trim() || '',
+          category,
+          date: date ? new Date(date) : new Date(),
+          type: 'own',
+          amountPerPerson,
+          createdBy: participantId
+        });
+
+        await individualExpense.save();
+      }
+    }
+
     const newExpense = new Expense({
       title: title.trim(),
-      amount: parseFloat(amount),
+      amount: amountPerPerson,
+      totalAmount,
       description: description?.trim() || '',
       category,
       date: date ? new Date(date) : new Date(),
+      type: expenseType,
+      userGroup: groupId,
+      participants: participantsList,
+      amountPerPerson: amountPerPerson,
       createdBy: userId
     });
 
     await newExpense.save();
     await newExpense.populate('category', 'id name type');
+    await newExpense.populate('userGroup', 'id name');
+    await newExpense.populate('participants', 'id name email');
     await newExpense.populate('createdBy', 'id name email');
 
     return res.status(201).json({
@@ -126,11 +211,22 @@ async function createExpense(req, res) {
         title: newExpense.title,
         amount: newExpense.amount,
         description: newExpense.description,
+        type: newExpense.type,
+        amountPerPerson: newExpense.amountPerPerson,
         category: {
           id: newExpense.category._id.toString(),
           name: newExpense.category.name,
           type: newExpense.category.type
         },
+        userGroup: newExpense.userGroup ? {
+          id: newExpense.userGroup._id.toString(),
+          name: newExpense.userGroup.name
+        } : null,
+        participants: newExpense.participants.map(p => ({
+          id: p._id.toString(),
+          name: p.name,
+          email: p.email
+        })),
         date: newExpense.date,
         createdBy: {
           id: newExpense.createdBy._id.toString(),
@@ -166,7 +262,18 @@ async function updateExpense(req, res) {
       if (amount <= 0) {
         return res.status(400).json({ message: 'Amount must be greater than 0' });
       }
-      expense.amount = parseFloat(amount);
+      const totalAmount = parseFloat(amount);
+      expense.totalAmount = totalAmount;
+
+      if (expense.type === 'group' && expense.participants?.length) {
+        const splitCount = (expense.participants.length || 0) + 1;
+        const perPerson = totalAmount / splitCount;
+        expense.amount = perPerson;
+        expense.amountPerPerson = perPerson;
+      } else {
+        expense.amount = totalAmount;
+        expense.amountPerPerson = totalAmount;
+      }
     }
     if (description !== undefined) expense.description = description?.trim() || '';
     if (date) expense.date = new Date(date);
@@ -193,6 +300,8 @@ async function updateExpense(req, res) {
         id: expense._id.toString(),
         title: expense.title,
         amount: expense.amount,
+        amountPerPerson: expense.amountPerPerson,
+        totalAmount: expense.totalAmount || expense.amount,
         description: expense.description,
         category: {
           id: expense.category._id.toString(),

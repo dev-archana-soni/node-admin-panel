@@ -26,6 +26,28 @@ const expenseSchema = new mongoose.Schema({
     required: true,
     default: Date.now
   },
+  type: {
+    type: String,
+    enum: ['own', 'group'],
+    default: 'own'
+  },
+  userGroup: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserGroup',
+    required: false
+  },
+  participants: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  amountPerPerson: {
+    type: Number,
+    default: 0
+  },
+  totalAmount: {
+    type: Number,
+    default: 0
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

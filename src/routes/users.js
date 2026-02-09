@@ -8,6 +8,7 @@ const {
   getAvailableRoles 
 } = require('../controllers/usersController');
 const authenticate = require('../middleware/auth');
+const requirePermission = require('../middleware/requirePermission');
 const upload = require('../middleware/upload');
 
 const router = Router();
@@ -21,13 +22,13 @@ router.get('/', authenticate, getAllUsers);
 // Get user by ID
 router.get('/:id', authenticate, getUserById);
 
-// Create new user
-router.post('/', authenticate, upload.single('image'), createUser);
+// Create new user (requires users.create permission)
+router.post('/', authenticate, requirePermission('users.create'), upload.single('image'), createUser);
 
-// Update user
-router.put('/:id', authenticate, upload.single('image'), updateUser);
+// Update user (requires users.edit permission)
+router.put('/:id', authenticate, requirePermission('users.edit'), upload.single('image'), updateUser);
 
-// Delete user
-router.delete('/:id', authenticate, deleteUser);
+// Delete user (requires users.delete permission)
+router.delete('/:id', authenticate, requirePermission('users.delete'), deleteUser);
 
 module.exports = router;

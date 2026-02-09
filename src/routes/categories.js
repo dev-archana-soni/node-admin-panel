@@ -8,6 +8,7 @@ const {
 } = require('../controllers/categoriesController');
 const authenticate = require('../middleware/auth');
 const requireUserRole = require('../middleware/requireUserRole');
+const requirePermission = require('../middleware/requirePermission');
 
 const router = Router();
 
@@ -21,13 +22,13 @@ router.get('/', getAllCategories);
 // Get category by ID
 router.get('/:id', getCategoryById);
 
-// Create new category
-router.post('/', createCategory);
+// Create new category (requires categories.create permission)
+router.post('/', requirePermission('categories.create'), createCategory);
 
-// Update category
-router.put('/:id', updateCategory);
+// Update category (requires categories.edit permission)
+router.put('/:id', requirePermission('categories.edit'), updateCategory);
 
-// Delete category
-router.delete('/:id', authenticate, deleteCategory);
+// Delete category (requires categories.delete permission)
+router.delete('/:id', requirePermission('categories.delete'), deleteCategory);
 
 module.exports = router;

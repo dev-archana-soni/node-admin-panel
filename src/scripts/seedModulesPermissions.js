@@ -42,6 +42,27 @@ const modules = [
     description: 'User profile module',
     icon: 'mdi-account',
     isActive: true
+  },
+  {
+    name: 'items',
+    displayName: 'Items',
+    description: 'Items management module',
+    icon: 'mdi-package-multiple',
+    isActive: true
+  },
+  {
+    name: 'categories',
+    displayName: 'Categories',
+    description: 'Categories management module',
+    icon: 'mdi-folder-multiple',
+    isActive: true
+  },
+  {
+    name: 'products',
+    displayName: 'Products',
+    description: 'Products management module',
+    icon: 'mdi-package-variant-closed',
+    isActive: true
   }
 ];
 
@@ -49,19 +70,19 @@ const permissionsConfig = {
   users: [
     { name: 'users.view', description: 'View users' },
     { name: 'users.create', description: 'Create users' },
-    { name: 'users.update', description: 'Update users' },
+    { name: 'users.edit', description: 'Edit users' },
     { name: 'users.delete', description: 'Delete users' }
   ],
   roles: [
     { name: 'roles.view', description: 'View roles' },
     { name: 'roles.create', description: 'Create roles' },
-    { name: 'roles.update', description: 'Update roles' },
+    { name: 'roles.edit', description: 'Edit roles' },
     { name: 'roles.delete', description: 'Delete roles' }
   ],
   permissions: [
     { name: 'permissions.view', description: 'View permissions' },
     { name: 'permissions.create', description: 'Create permissions' },
-    { name: 'permissions.update', description: 'Update permissions' },
+    { name: 'permissions.edit', description: 'Edit permissions' },
     { name: 'permissions.delete', description: 'Delete permissions' }
   ],
   dashboard: [
@@ -69,8 +90,26 @@ const permissionsConfig = {
   ],
   profile: [
     { name: 'profile.view', description: 'View own profile' },
-    { name: 'profile.update', description: 'Update own profile' },
-    { name: 'profile.updatePassword', description: 'Update own password' }
+    { name: 'profile.edit', description: 'Edit own profile' },
+    { name: 'profile.editPassword', description: 'Edit own password' }
+  ],
+  items: [
+    { name: 'items.view', description: 'View items' },
+    { name: 'items.create', description: 'Create items' },
+    { name: 'items.edit', description: 'Edit items' },
+    { name: 'items.delete', description: 'Delete items' }
+  ],
+  categories: [
+    { name: 'categories.view', description: 'View categories' },
+    { name: 'categories.create', description: 'Create categories' },
+    { name: 'categories.edit', description: 'Edit categories' },
+    { name: 'categories.delete', description: 'Delete categories' }
+  ],
+  products: [
+    { name: 'products.view', description: 'View products' },
+    { name: 'products.create', description: 'Create products' },
+    { name: 'products.edit', description: 'Edit products' },
+    { name: 'products.delete', description: 'Delete products' }
   ]
 };
 
@@ -126,23 +165,30 @@ async function seedData() {
         createdPermissions['permissions.view'],
         createdPermissions['dashboard.view'],
         createdPermissions['profile.view'],
-        createdPermissions['profile.update'],
-        createdPermissions['profile.updatePassword']
+        createdPermissions['profile.edit'],
+        createdPermissions['profile.editPassword'],
+        createdPermissions['items.view'],
+        createdPermissions['items.create'],
+        createdPermissions['items.edit'],
+        createdPermissions['categories.view'],
+        createdPermissions['categories.create'],
+        createdPermissions['categories.edit'],
+        createdPermissions['products.view']
       ].map(p => p._id).filter(Boolean);
       await userRole.save();
-      console.log('✓ Updated user role with view permissions');
+      console.log('✓ Updated user role with view and create permissions');
     }
 
     if (moderatorRole) {
       moderatorRole.permissions = [
         createdPermissions['users.view'],
-        createdPermissions['users.update'],
+        createdPermissions['users.edit'],
         createdPermissions['roles.view'],
         createdPermissions['permissions.view'],
         createdPermissions['dashboard.view'],
         createdPermissions['profile.view'],
-        createdPermissions['profile.update'],
-        createdPermissions['profile.updatePassword']
+        createdPermissions['profile.edit'],
+        createdPermissions['profile.editPassword']
       ].map(p => p._id).filter(Boolean);
       await moderatorRole.save();
       console.log('✓ Updated moderator role with moderate permissions');

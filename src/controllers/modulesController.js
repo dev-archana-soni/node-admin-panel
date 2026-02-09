@@ -168,20 +168,21 @@ async function deleteModule(req, res) {
   const { id } = req.params;
 
   try {
-    // Check if any permissions use this module
-    const permissionCount = await Permission.countDocuments({ module: id });
-    if (permissionCount > 0) {
-      return res.status(409).json({ 
-        message: `Cannot delete module. ${permissionCount} permission(s) are using this module.` 
-      });
-    }
-
-    const module = await Module.findByIdAndDelete(id);
+    const module = await Module.findById(id);
     if (!module) {
       return res.status(404).json({ message: 'Module not found' });
     }
 
-    return res.json({ message: 'Module deleted successfully' });
+    // Delete all permissions associated with this module
+    const permissionsDeleted = await Permission.deleteMany({ module: id });
+
+    // Delete the module
+    await Module.findByIdAndDelete(id);
+
+    return res.json({ 
+      message: 'Module deleted successfully',
+      deletedPermissionsCount: permissionsDeleted.deletedCount
+    });
   } catch (error) {
     console.error('Delete module error:', error);
     return res.status(500).json({ message: 'Internal server error' });

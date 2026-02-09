@@ -12,6 +12,8 @@ const incomeRoutes = require('./routes/income');
 const expenseRoutes = require('./routes/expense');
 const itemsRoutes = require('./routes/items');
 const monthlyItemsRoutes = require('./routes/monthlyItems');
+const mediaRoutes = require('./routes/media');
+const productsRoutes = require('./routes/products');
 
 const app = express();
 
@@ -39,7 +41,9 @@ app.use('/api/categories', categoriesRoutes);
 app.use('/api/income', incomeRoutes);
 app.use('/api/expense', expenseRoutes);
 app.use('/api/items', itemsRoutes);
+app.use('/api/products', productsRoutes);
 app.use('/api/monthly-items', monthlyItemsRoutes);
+app.use('/api/media', mediaRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

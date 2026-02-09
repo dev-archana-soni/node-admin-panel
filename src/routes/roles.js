@@ -8,6 +8,7 @@ const {
   deleteRole
 } = require('../controllers/rolesController');
 const authenticate = require('../middleware/auth');
+const requirePermission = require('../middleware/requirePermission');
 
 const router = Router();
 
@@ -20,13 +21,13 @@ router.get('/', authenticate, getAllRoles);
 // Get role by ID
 router.get('/:id', authenticate, getRoleById);
 
-// Create new role
-router.post('/', authenticate, createRole);
+// Create new role (requires roles.create permission)
+router.post('/', authenticate, requirePermission('roles.create'), createRole);
 
-// Update role
-router.put('/:id', authenticate, updateRole);
+// Update role (requires roles.edit permission)
+router.put('/:id', authenticate, requirePermission('roles.edit'), updateRole);
 
-// Delete role
-router.delete('/:id', authenticate, deleteRole);
+// Delete role (requires roles.delete permission)
+router.delete('/:id', authenticate, requirePermission('roles.delete'), deleteRole);
 
 module.exports = router;

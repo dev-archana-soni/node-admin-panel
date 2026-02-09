@@ -1,5 +1,6 @@
 const express = require('express');
 const auth = require('../middleware/auth');
+const requirePermission = require('../middleware/requirePermission');
 const {
   getAllPermissions,
   getPermissionsByModule,
@@ -23,13 +24,13 @@ router.get('/module/:moduleId', getPermissionsByModule);
 // Get permission by ID
 router.get('/:id', getPermissionById);
 
-// Create permission
-router.post('/', createPermission);
+// Create permission (requires permissions.create permission)
+router.post('/', requirePermission('permissions.create'), createPermission);
 
-// Update permission
-router.put('/:id', updatePermission);
+// Update permission (requires permissions.edit permission)
+router.put('/:id', requirePermission('permissions.edit'), updatePermission);
 
-// Delete permission
-router.delete('/:id', deletePermission);
+// Delete permission (requires permissions.delete permission)
+router.delete('/:id', requirePermission('permissions.delete'), deletePermission);
 
 module.exports = router;

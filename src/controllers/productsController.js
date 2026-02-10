@@ -51,6 +51,73 @@ async function getAllProducts(req, res) {
   }
 }
 
+async function getPublicProducts(req, res) {
+  try {
+    const products = await Product.find({})
+      .populate('category', 'id name type')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json({
+      products: products.map(product => ({
+        id: product._id.toString(),
+        name: product.name,
+        sku: product.sku,
+        price: product.price,
+        stock: product.stock,
+        category: product.category ? {
+          id: product.category._id?.toString(),
+          name: product.category.name,
+          type: product.category.type
+        } : null,
+        description: product.description || '',
+        images: product.images || [],
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt
+      }))
+    });
+  } catch (error) {
+    console.error('Get public products error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+async function getPublicProductById(req, res) {
+  const { id } = req.params;
+
+  try {
+    const product = await Product.findById(id)
+      .populate('category', 'id name type')
+      .lean();
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    return res.json({
+      product: {
+        id: product._id.toString(),
+        name: product.name,
+        sku: product.sku,
+        price: product.price,
+        stock: product.stock,
+        category: product.category ? {
+          id: product.category._id?.toString(),
+          name: product.category.name,
+          type: product.category.type
+        } : null,
+        description: product.description || '',
+        images: product.images || [],
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('Get public product by ID error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 async function getProductById(req, res) {
   const { id } = req.params;
   const userId = req.user?.userId || req.user?.id;
@@ -292,6 +359,8 @@ async function deleteProduct(req, res) {
 
 module.exports = {
   getAllProducts,
+  getPublicProducts,
+  getPublicProductById,
   getProductById,
   createProduct,
   updateProduct,

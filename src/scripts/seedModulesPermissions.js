@@ -63,6 +63,13 @@ const modules = [
     description: 'Products management module',
     icon: 'mdi-package-variant-closed',
     isActive: true
+  },
+  {
+    name: 'orders',
+    displayName: 'Orders',
+    description: 'Order management module',
+    icon: 'mdi-receipt-text',
+    isActive: true
   }
 ];
 
@@ -110,6 +117,12 @@ const permissionsConfig = {
     { name: 'products.create', description: 'Create products' },
     { name: 'products.edit', description: 'Edit products' },
     { name: 'products.delete', description: 'Delete products' }
+  ],
+  orders: [
+    { name: 'orders.view', description: 'View orders' },
+    { name: 'orders.create', description: 'Create orders' },
+    { name: 'orders.edit', description: 'Edit orders' },
+    { name: 'orders.delete', description: 'Delete orders' }
   ]
 };
 
@@ -173,7 +186,8 @@ async function seedData() {
         createdPermissions['categories.view'],
         createdPermissions['categories.create'],
         createdPermissions['categories.edit'],
-        createdPermissions['products.view']
+        createdPermissions['products.view'],
+        createdPermissions['orders.view']
       ].map(p => p._id).filter(Boolean);
       await userRole.save();
       console.log('✓ Updated user role with view and create permissions');

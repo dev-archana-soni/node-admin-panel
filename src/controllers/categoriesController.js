@@ -26,6 +26,31 @@ async function getAllCategories(req, res) {
   }
 }
 
+async function getPublicCategories(req, res) {
+  try {
+    const categories = await Category.find({ isActive: true })
+      .select('-__v')
+      .lean();
+
+    return res.json({
+      categories: categories.map(category => ({
+        id: category._id.toString(),
+        name: category.name,
+        description: category.description || '',
+        type: category.type,
+        icon: category.icon || 'mdi-tag',
+        color: category.color || '#2196F3',
+        isActive: category.isActive,
+        createdAt: category.createdAt,
+        updatedAt: category.updatedAt
+      }))
+    });
+  } catch (error) {
+    console.error('Get public categories error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 // Get category by ID
 async function getCategoryById(req, res) {
   const { id } = req.params;
@@ -195,6 +220,7 @@ async function deleteCategory(req, res) {
 
 module.exports = {
   getAllCategories,
+  getPublicCategories,
   getCategoryById,
   createCategory,
   updateCategory,

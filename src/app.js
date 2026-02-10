@@ -14,6 +14,8 @@ const itemsRoutes = require('./routes/items');
 const monthlyItemsRoutes = require('./routes/monthlyItems');
 const mediaRoutes = require('./routes/media');
 const productsRoutes = require('./routes/products');
+const ordersRoutes = require('./routes/orders');
+const publicRoutes = require('./routes/public');
 
 const app = express();
 
@@ -42,6 +44,8 @@ app.use('/api/income', incomeRoutes);
 app.use('/api/expense', expenseRoutes);
 app.use('/api/items', itemsRoutes);
 app.use('/api/products', productsRoutes);
+app.use('/api/orders', ordersRoutes);
+app.use('/api/public', publicRoutes);
 app.use('/api/monthly-items', monthlyItemsRoutes);
 app.use('/api/media', mediaRoutes);
 

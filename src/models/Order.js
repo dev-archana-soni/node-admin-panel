@@ -17,6 +17,11 @@ const orderSchema = new mongoose.Schema(
     orderNumber: { type: String, required: true, trim: true },
     customerName: { type: String, required: true, trim: true },
     customerEmail: { type: String, trim: true, default: '' },
+    customerPhone: { type: String, trim: true, default: '' },
+    shippingAddress: { type: String, trim: true, default: '' },
+    shippingCity: { type: String, trim: true, default: '' },
+    shippingState: { type: String, trim: true, default: '' },
+    shippingPostalCode: { type: String, trim: true, default: '' },
     status: {
       type: String,
       enum: ['pending', 'processing', 'completed', 'cancelled'],

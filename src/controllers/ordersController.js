@@ -80,6 +80,95 @@ const computeTotals = (items, taxValue, discountValue) => {
   };
 };
 
+const generateOrderNumber = async (createdBy, prefix = 'EC') => {
+  const dateStamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const randomPart = Math.floor(1000 + Math.random() * 9000);
+    const candidate = `${prefix}-${dateStamp}-${randomPart}`;
+    const exists = await Order.findOne({ orderNumber: candidate, createdBy }).lean();
+    if (!exists) return candidate;
+  }
+
+  return `${prefix}-${Date.now()}`;
+};
+
+const buildPublicOrderItems = async (items) => {
+  if (!Array.isArray(items) || items.length === 0) {
+    const error = new Error('At least one item is required');
+    error.status = 400;
+    throw error;
+  }
+
+  const productIds = items.map(item => item.product).filter(Boolean);
+  if (productIds.length !== items.length) {
+    const error = new Error('Each item must reference a product');
+    error.status = 400;
+    throw error;
+  }
+
+  const products = await Product.find({ _id: { $in: productIds } }).lean();
+  const productMap = new Map(products.map(product => [product._id.toString(), product]));
+
+  if (products.length !== productIds.length) {
+    const error = new Error('Product not found for one or more items');
+    error.status = 404;
+    throw error;
+  }
+
+  const ownerId = products[0]?.createdBy?.toString();
+  if (!ownerId) {
+    const error = new Error('Unable to determine store owner for this order');
+    error.status = 400;
+    throw error;
+  }
+
+  const hasMixedOwners = products.some(product => product.createdBy?.toString() !== ownerId);
+  if (hasMixedOwners) {
+    const error = new Error('All items must belong to the same store');
+    error.status = 400;
+    throw error;
+  }
+
+  const orderItems = items.map((item) => {
+    const productId = String(item.product);
+    const product = productMap.get(productId);
+    if (!product) {
+      const error = new Error('Product not found for one or more items');
+      error.status = 404;
+      throw error;
+    }
+
+    const quantity = Number.parseInt(item.quantity, 10);
+    if (Number.isNaN(quantity) || quantity < 1) {
+      const error = new Error('Each item must have a valid quantity');
+      error.status = 400;
+      throw error;
+    }
+
+    const priceCandidate = toNumber(item.price);
+    const price = priceCandidate === null ? product.price : priceCandidate;
+    if (price === null || price < 0) {
+      const error = new Error('Each item must have a valid price');
+      error.status = 400;
+      throw error;
+    }
+
+    const subtotal = Number((price * quantity).toFixed(2));
+
+    return {
+      product: product._id,
+      productName: product.name,
+      sku: product.sku,
+      price,
+      quantity,
+      subtotal
+    };
+  });
+
+  return { orderItems, ownerId };
+};
+
 async function getAllOrders(req, res) {
   try {
     const userId = req.user?.userId || req.user?.id;
@@ -93,6 +182,11 @@ async function getAllOrders(req, res) {
         orderNumber: order.orderNumber,
         customerName: order.customerName,
         customerEmail: order.customerEmail || '',
+        customerPhone: order.customerPhone || '',
+        shippingAddress: order.shippingAddress || '',
+        shippingCity: order.shippingCity || '',
+        shippingState: order.shippingState || '',
+        shippingPostalCode: order.shippingPostalCode || '',
         status: order.status,
         items: order.items || [],
         itemsCount: order.items?.length || 0,
@@ -127,6 +221,11 @@ async function getOrderById(req, res) {
         orderNumber: order.orderNumber,
         customerName: order.customerName,
         customerEmail: order.customerEmail || '',
+        customerPhone: order.customerPhone || '',
+        shippingAddress: order.shippingAddress || '',
+        shippingCity: order.shippingCity || '',
+        shippingState: order.shippingState || '',
+        shippingPostalCode: order.shippingPostalCode || '',
         status: order.status,
         items: order.items || [],
         subtotal: order.subtotal,
@@ -145,7 +244,21 @@ async function getOrderById(req, res) {
 }
 
 async function createOrder(req, res) {
-  const { orderNumber, customerName, customerEmail, status, items, tax, discount, notes } = req.body || {};
+  const {
+    orderNumber,
+    customerName,
+    customerEmail,
+    customerPhone,
+    shippingAddress,
+    shippingCity,
+    shippingState,
+    shippingPostalCode,
+    status,
+    items,
+    tax,
+    discount,
+    notes
+  } = req.body || {};
   const userId = req.user?.userId || req.user?.id;
 
   if (!orderNumber || !customerName) {
@@ -177,6 +290,11 @@ async function createOrder(req, res) {
       orderNumber: orderNumber.trim(),
       customerName: customerName.trim(),
       customerEmail: customerEmail?.trim() || '',
+      customerPhone: customerPhone?.trim() || '',
+      shippingAddress: shippingAddress?.trim() || '',
+      shippingCity: shippingCity?.trim() || '',
+      shippingState: shippingState?.trim() || '',
+      shippingPostalCode: shippingPostalCode?.trim() || '',
       status: normalizedStatus,
       items: orderItems,
       subtotal: totals.subtotal,
@@ -194,6 +312,11 @@ async function createOrder(req, res) {
         orderNumber: order.orderNumber,
         customerName: order.customerName,
         customerEmail: order.customerEmail || '',
+        customerPhone: order.customerPhone || '',
+        shippingAddress: order.shippingAddress || '',
+        shippingCity: order.shippingCity || '',
+        shippingState: order.shippingState || '',
+        shippingPostalCode: order.shippingPostalCode || '',
         status: order.status,
         items: order.items || [],
         subtotal: order.subtotal,
@@ -217,9 +340,99 @@ async function createOrder(req, res) {
   }
 }
 
+async function createPublicOrder(req, res) {
+  const {
+    customerName,
+    customerEmail,
+    customerPhone,
+    shippingAddress,
+    shippingCity,
+    shippingState,
+    shippingPostalCode,
+    items,
+    notes
+  } = req.body || {};
+
+  if (!customerName) {
+    return res.status(400).json({ message: 'Customer name is required' });
+  }
+
+  try {
+    const { orderItems, ownerId } = await buildPublicOrderItems(items);
+    const totals = computeTotals(orderItems, 0, 0);
+    const orderNumber = await generateOrderNumber(ownerId);
+
+    const order = await Order.create({
+      orderNumber,
+      customerName: customerName.trim(),
+      customerEmail: customerEmail?.trim() || '',
+      customerPhone: customerPhone?.trim() || '',
+      shippingAddress: shippingAddress?.trim() || '',
+      shippingCity: shippingCity?.trim() || '',
+      shippingState: shippingState?.trim() || '',
+      shippingPostalCode: shippingPostalCode?.trim() || '',
+      status: 'pending',
+      items: orderItems,
+      subtotal: totals.subtotal,
+      tax: totals.tax,
+      discount: totals.discount,
+      totalAmount: totals.totalAmount,
+      notes: notes?.trim() || '',
+      createdBy: ownerId
+    });
+
+    return res.status(201).json({
+      message: 'Order created successfully',
+      order: {
+        id: order._id.toString(),
+        orderNumber: order.orderNumber,
+        customerName: order.customerName,
+        customerEmail: order.customerEmail || '',
+        customerPhone: order.customerPhone || '',
+        shippingAddress: order.shippingAddress || '',
+        shippingCity: order.shippingCity || '',
+        shippingState: order.shippingState || '',
+        shippingPostalCode: order.shippingPostalCode || '',
+        status: order.status,
+        items: order.items || [],
+        subtotal: order.subtotal,
+        tax: order.tax,
+        discount: order.discount,
+        totalAmount: order.totalAmount,
+        notes: order.notes || '',
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('Create public order error:', error);
+    if (error?.status) {
+      return res.status(error.status).json({ message: error.message });
+    }
+    if (error?.code === 11000) {
+      return res.status(409).json({ message: 'Order number already exists' });
+    }
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 async function updateOrder(req, res) {
   const { id } = req.params;
-  const { orderNumber, customerName, customerEmail, status, items, tax, discount, notes } = req.body || {};
+  const {
+    orderNumber,
+    customerName,
+    customerEmail,
+    customerPhone,
+    shippingAddress,
+    shippingCity,
+    shippingState,
+    shippingPostalCode,
+    status,
+    items,
+    tax,
+    discount,
+    notes
+  } = req.body || {};
   const userId = req.user?.userId || req.user?.id;
 
   try {
@@ -246,6 +459,26 @@ async function updateOrder(req, res) {
 
     if (customerEmail !== undefined) {
       order.customerEmail = customerEmail?.trim() || '';
+    }
+
+    if (customerPhone !== undefined) {
+      order.customerPhone = customerPhone?.trim() || '';
+    }
+
+    if (shippingAddress !== undefined) {
+      order.shippingAddress = shippingAddress?.trim() || '';
+    }
+
+    if (shippingCity !== undefined) {
+      order.shippingCity = shippingCity?.trim() || '';
+    }
+
+    if (shippingState !== undefined) {
+      order.shippingState = shippingState?.trim() || '';
+    }
+
+    if (shippingPostalCode !== undefined) {
+      order.shippingPostalCode = shippingPostalCode?.trim() || '';
     }
 
     if (status) {
@@ -288,6 +521,11 @@ async function updateOrder(req, res) {
         orderNumber: order.orderNumber,
         customerName: order.customerName,
         customerEmail: order.customerEmail || '',
+        customerPhone: order.customerPhone || '',
+        shippingAddress: order.shippingAddress || '',
+        shippingCity: order.shippingCity || '',
+        shippingState: order.shippingState || '',
+        shippingPostalCode: order.shippingPostalCode || '',
         status: order.status,
         items: order.items || [],
         subtotal: order.subtotal,
@@ -332,6 +570,7 @@ module.exports = {
   getAllOrders,
   getOrderById,
   createOrder,
+  createPublicOrder,
   updateOrder,
   deleteOrder
 };
